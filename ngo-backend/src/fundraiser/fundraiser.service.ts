@@ -3,10 +3,7 @@ import { FundRaiserRepository } from './repo/fundraiser.repository';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Fundraiser } from './entities/fundraiser.entity';
 import * as bcrypt from 'bcrypt';
-import { UserRepository } from 'src/user/repo/user.repository';
-import { User } from 'src/user/entities/user.entity';
 import { UpdateFundraiserDto } from './dto/update-profile.dto';
-import { time } from 'console';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 import { DonationRepository } from 'src/donation/repo/donation.repository';
 
@@ -14,7 +11,6 @@ import { DonationRepository } from 'src/donation/repo/donation.repository';
 export class FundraiserService {
 
     constructor(private fundRaiserRepository:FundRaiserRepository,
-      private userRepository:UserRepository,
       private fundraiserPageRepository:FundraiserPageRepository,
       private donationRepository:DonationRepository){}
     
@@ -28,13 +24,13 @@ export class FundraiserService {
     }  
 
     async changePassword(req,changePasswordDto:ChangePasswordDto){
-        const user:User = req.user;
-        const user2 = await this.userRepository.findOne({where:{email:user.email}})
-        var isSame = await bcrypt.compare(changePasswordDto.oldPassword,user2.password)
+        const fundraiser:Fundraiser = req.fundraiser;
+        const fundraiser2 = await this.fundRaiserRepository.findOne({where:{email:fundraiser.email}})
+        var isSame = await bcrypt.compare(changePasswordDto.oldPassword,fundraiser2.password)
         if(isSame){
           if(changePasswordDto.newPassword==changePasswordDto.confirmPassword){
             const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword,10)
-            return this.userRepository.update(user2.id,{password:hashedPassword});
+            return this.fundRaiserRepository.update(fundraiser2.fundraiser_id,{password:hashedPassword});
           }
           else{
             throw new UnauthorizedException("New password and confirm password do not match")
@@ -45,9 +41,9 @@ export class FundraiserService {
       }
 
     async updateFundRaiserById(req,updateFundRaiserDto:UpdateFundraiserDto){
-      const user:User = req.user;
+      // const user:User = req.user;
       console.log(updateFundRaiserDto)
-      const fundRaiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.id}})
+      const fundRaiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
       const updatedFund = await this.fundRaiserRepository.update(fundRaiser.fundraiser_id,updateFundRaiserDto  
         // firstName:fundraiser.firstName,
         // lastName:fundraiser.lastName,

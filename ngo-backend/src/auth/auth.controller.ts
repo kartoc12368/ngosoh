@@ -2,32 +2,30 @@ import { Body, Controller, Get, Post, Req, UseGuards ,Param, NotFoundException, 
 import { JwtService } from "@nestjs/jwt";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { User } from "src/user/entities/user.entity";
 import { LoginDto } from "./dto/login.dto";
 import * as bcrypt from "bcrypt"
-import { UserService } from "src/user/user.service";
 import { sendEmailDto } from "src/mailer/mail.interface";
 import { MailerService } from "src/mailer/mailer.service";
 import { AdminService } from "src/admin/admin.service";
 import { FundraiserService } from "src/fundraiser/fundraiser.service";
 import { AuthService} from "src/auth/auth.service"
 import { ForgottenPasswordRepository } from "./repo/forgot-password.repo";
-import { UserRepository } from "src/user/repo/user.repository";
 import { response } from "express";
 import { Public } from "src/public.decorator";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { FundRaiserRepository } from "src/fundraiser/repo/fundraiser.repository";
+import { Fundraiser } from "src/fundraiser/entities/fundraiser.entity";
 
 @ApiTags("Login")
 @Controller("auth")
 export class AuthController {
 
     constructor(private jwtService: JwtService,
-        private userService: UserService,
         private fundraiserService:FundraiserService,
         private authService:AuthService,
         private forgottenPasswordRepository:ForgottenPasswordRepository,
-        private userRepository:UserRepository
+        private fundraiserRepository:FundRaiserRepository
         ){}
 
     //Login Route
@@ -36,17 +34,17 @@ export class AuthController {
     @Post("/login")
     async login(@Req() req, @Body(ValidationPipe) loginDto: LoginDto,@Res({passthrough:true}) response){
         //jwt token
-        const user : User = req.user;
-        if((user.role=="FUNDRAISER" && await this.fundraiserService.getFundRaiserStatusByEmail(user.email)=="active" ) ||(user.role=="NORMAL_USER_ROLE") || (user.role=="ADMIN")){
-            const userPassword = await this.userRepository.findOne({where: {email: user.email},select:["password"]})    
+        const fundraiser: Fundraiser = req.user;
+        if((fundraiser.role=="FUNDRAISER" && await this.fundraiserService.getFundRaiserStatusByEmail(fundraiser.email)=="active" )|| (fundraiser.role=="ADMIN")){
+            const userPassword = await this.fundraiserRepository.findOne({where: {email: fundraiser.email},select:["password"]})    
         
-        if(user && (await bcrypt.compare(loginDto.password,userPassword.password))){
+        if(fundraiser && (await bcrypt.compare(loginDto.password,userPassword.password))){
             const payload = {
-                "firstName": user.firstName,
-                "email": user.email,
-                "role": user.role,
-                "userId": user.id,
-                "profileImage":user.profileImage   
+                "firstName": fundraiser.firstName,
+                "email": fundraiser.email,
+                "role": fundraiser.role,
+                "fundraiserId": fundraiser.fundraiser_id,
+                "profileImage":fundraiser.profileImage   
             }
             return {token: this.jwtService.sign(payload)};   
             // return this.authService.issueTokens(user, response); // Issue tokens on login
@@ -73,17 +71,17 @@ export class AuthController {
     @Public()
     @Post("reset-password")
     async setNewPassword(@Body(ValidationPipe)body:ResetPasswordDto){
-        var user = await this.forgottenPasswordRepository.findOne({where:{newPasswordToken:body.otp}})
-        if(!user){
+        var fundraiser = await this.forgottenPasswordRepository.findOne({where:{newPasswordToken:body.otp}})
+        if(!fundraiser){
             throw new NotFoundException("Invalid Otp")
         }
         else{
-            var user_new = await this.userService.findUserByEmail(user.email)
+            var user_new = await this.fundraiserService.findFundRaiserByEmail(fundraiser.email)
             const password = body.newPassword
             const hashedPassword = await bcrypt.hash(password,10)
-            var status = await this.userRepository.update(user_new.id,{password:hashedPassword})
+            var status = await this.fundraiserRepository.update(user_new.fundraiser_id,{password:hashedPassword})
             if(status){
-            await this.forgottenPasswordRepository.remove(user)}
+            await this.forgottenPasswordRepository.remove(fundraiser)}
             return "Success"
 
         }

@@ -7,13 +7,17 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { FundRaiserRepository } from './repo/fundraiser.repository';
 import { UpdateFundraiserDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { storage } from 'src/user/user.service';
-import { User } from 'src/user/entities/user.entity';
-import { UserRepository } from 'src/user/repo/user.repository';
+import {v4 as uuidv4} from "uuid";
 import { of } from 'rxjs';
 import * as path from 'path';
 import { Fundraiser } from './entities/fundraiser.entity';
+import { diskStorage } from 'multer';
 
+export const storage =   {  storage:diskStorage({
+   destination:"./uploads/profileImages", filename:(req,file,cb)=>{ 
+    const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4(); 
+    const extension:string = path.parse(file.originalname).ext; 
+    cb(null, `${filename}${extension}`) } }) }
 @ApiTags("FundRaiser")
 @ApiSecurity("JWT-auth")
 @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
@@ -21,7 +25,6 @@ import { Fundraiser } from './entities/fundraiser.entity';
 export class FundraiserController {
   constructor(private readonly fundraiserService: FundraiserService,
     private fundRaiserRepository:FundRaiserRepository,
-    private userRepository:UserRepository
   ) {}
 
   //change Password Fundraiser
@@ -52,18 +55,18 @@ export class FundraiserController {
 
   @Get("/fundraiser-page")
   async getAllFundraiserPages(@Req() req){
-    let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.id}})
+    let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
     return this.fundraiserService.getAllFundraiserPages(fundRaiser);
   }
-
+  
   //upload fundraiser profileImage
   @Post("upload")
   @UseInterceptors(FileInterceptor("file",storage))
   async uploadFile(@UploadedFile() file,@Req() req){
-    let user:User = req.user;
-    let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(user.email)
+    let fundraiser:Fundraiser = req.user;
+    let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(fundraiser.email)
     await this.fundRaiserRepository.update(fundRaiser.fundraiser_id,{profileImage:file.filename})
-    return await this.userRepository.update(user.id,{profileImage:file.filename})
+    return await this.fundRaiserRepository.update(fundRaiser.fundraiser_id,{profileImage:file.filename})
   }
 
   //get fundraiser ProfileImage
@@ -76,7 +79,7 @@ export class FundraiserController {
 
   @Get("/donations")
   async getDonationsById(@Req() req){
-    let user:User = req.user;
-    return await this.fundraiserService.getDonationByIdFundraiser(user)
+    let fundraiser:Fundraiser=req.user
+    return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
   }
 }

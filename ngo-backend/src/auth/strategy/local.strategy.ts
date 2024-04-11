@@ -1,32 +1,32 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
-import { User } from "src/user/entities/user.entity";
-import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcrypt";
-import { UserRepository } from "src/user/repo/user.repository";
-
+import { FundraiserService } from "src/fundraiser/fundraiser.service";
+import { FundRaiserRepository } from "src/fundraiser/repo/fundraiser.repository";
+import { Fundraiser } from "src/fundraiser/entities/fundraiser.entity";
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy){
-    constructor(private userService: UserService,
-        private userRepository: UserRepository){
+    constructor(private fundraiserService:FundraiserService,
+        private fundraiserRepository:FundRaiserRepository){
         super({
             usernameField: 'email',
             passwordField: 'password',
         })
     }
 
-    async validate(email:string, password:string): Promise<User>{
-        const user: User = await this.userService.findUserByEmail(email);
-        const userPassword = await this.userRepository.findOne({where: {email: email},select:["password"]})
-        if(user && (await bcrypt.compare(password,userPassword.password))){
-            return user;
+    async validate(email:string, password:string): Promise<Fundraiser>{
+        const fundraiser:Fundraiser = await this.fundraiserService.findFundRaiserByEmail(email);
+        const fundraiserPassword = await this.fundraiserRepository.findOne({where: {email: email},select:["password"]})
+        if(fundraiser && (await bcrypt.compare(password,fundraiserPassword.password))){
+            // console.log(fundraiser)
+            return fundraiser;
         }
-        if(user == undefined){
-            throw new UnauthorizedException("User not found:"+ email
+        if(fundraiser == undefined){
+            throw new UnauthorizedException("fundraiser not found:"+ email
             );
         }
-        if(!(await bcrypt.compare(password,userPassword.password))){
+        if(!(await bcrypt.compare(password,fundraiserPassword.password))){
             throw new UnauthorizedException("Invalid password"
             );
         }

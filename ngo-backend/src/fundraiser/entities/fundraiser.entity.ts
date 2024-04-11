@@ -1,8 +1,6 @@
 import { Field } from "@nestjs/graphql";
 import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Donation } from "../../donation/entities/donation.entity";
-import { User } from "src/user/entities/user.entity";
-import { Project } from "src/project/entities/project.entity";
 import { IsNumber } from "class-validator";
 import { FundraiserPage } from "src/fundraiser-page/entities/fundraiser-page.entity";
 import { Exclude } from "class-transformer";
@@ -11,7 +9,6 @@ import { Exclude } from "class-transformer";
 export class Fundraiser {
 
     @PrimaryGeneratedColumn()
-    @OneToOne(()=> User,(id)=>{id.id})
     fundraiser_id: number;
 
     @Column()
@@ -78,18 +75,10 @@ export class Fundraiser {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     public updated_at: Date;
 
-
-    @OneToOne(()=>User,user=>user.fundraiser)
-    user:User
-
     @OneToMany(()=>Donation,donation=>donation.fundraiser)
     donations:Donation[];
 
-    @ManyToMany(()=>Project,project=>project.fundraiser)
-    @JoinTable()
-    project:Project[]
-
-    @OneToMany(()=>FundraiserPage,fundraiserPage=>fundraiserPage.fundraiser)
-    fundraiser_page:FundraiserPage[];
+    @OneToOne(()=>FundraiserPage,fundraiserPage=>fundraiserPage.fundraiser,{"onDelete":"CASCADE"})
+    fundraiser_page:FundraiserPage;
 
 }

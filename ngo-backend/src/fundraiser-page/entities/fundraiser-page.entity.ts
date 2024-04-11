@@ -1,5 +1,4 @@
 import { Fundraiser } from "src/fundraiser/entities/fundraiser.entity";
-import { Project } from "src/project/entities/project.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
@@ -35,10 +34,9 @@ export class FundraiserPage{
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     public updated_at: Date;
 
-    @ManyToOne(()=>Fundraiser,fundraiser=>fundraiser.fundraiser_page,{onDelete:"CASCADE",eager:true})
+    @OneToOne(()=>Fundraiser,fundraiser=>fundraiser.fundraiser_page,{onDelete:"CASCADE",eager:true})
+    @JoinColumn()
     fundraiser:Fundraiser;
 
-    @ManyToOne(()=>Project,project=>project.fundraiserPage,{onDelete:"SET NULL"})
-    project:Project;
 
 }

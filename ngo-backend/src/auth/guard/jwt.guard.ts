@@ -33,7 +33,7 @@ export class JwtAuthGuard extends AuthGuard("jwt"){
     // }
 
     handleRequest(err, user, info, context) {
-        const request = context.switchToHttp().getRequest();       
+        const request = context.switchToHttp().getRequest();
     
         const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
         if (user){  return user};  

@@ -3,24 +3,22 @@ import { JwtService } from '@nestjs/jwt';
 import { Request, Response, response } from 'express';
 import { sendEmailDto } from 'src/mailer/mail.interface';
 import { MailerService } from 'src/mailer/mailer.service';
-import { User } from 'src/user/entities/user.entity';
-import { UserRepository } from 'src/user/repo/user.repository';
-import { UserService } from 'src/user/user.service';
 import { ForgottenPasswordRepository } from './repo/forgot-password.repo';
 import { ForgottenPassword } from './entities/forgot-password.entity';
 import { ConfigService } from '@nestjs/config';
+import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 
 @Injectable()
 export class AuthService {
 
     constructor(
-        private userService: UserService,
         private mailerService: MailerService,
         private forgottenPasswordRepository:ForgottenPasswordRepository,
+        private fundraiserService:FundraiserService
     ){}
 
     async sendEmailForgotPassword(email:string){
-        const user = await this.userService.findUserByEmail(email)
+        const user = await this.fundraiserService.findFundRaiserByEmail(email)
         if(!user){
             throw new NotFoundException("User not found")
         }

@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from './mailer/mailer.module';
 import { FundraiserModule } from './fundraiser/fundraiser.module';
 import { DonationModule } from './donation/donation.module';
-import { ProjectModule } from './project/project.module';
 import { AdminModule } from './admin/admin.module';
 import { FundraiserPageModule } from './fundraiser-page/fundraiser-page.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -30,11 +28,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     inject: [ConfigService],
   }),
-  UserModule,
   AuthModule,
   MailerModule,
   FundraiserModule,
-  ProjectModule,
   DonationModule,
   AdminModule,
   FundraiserPageModule,

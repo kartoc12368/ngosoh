@@ -1,11 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DonationRepository } from './repo/donation.repository';
-import { User } from 'src/user/entities/user.entity';
 import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
-import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { Donation } from './entities/donation.entity';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-import { first } from 'rxjs';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 
 @Injectable()
@@ -16,7 +13,6 @@ export class DonationService {
 
     async donate(req,body,id?){
         //getting logged user if any
-        let user:User = req.user;
 
         //making a new donation object to save
         let donation:Donation = new Donation();
@@ -24,24 +20,8 @@ export class DonationService {
         //creating empty supporter array to push to supporters of fundraiserPage
         let supporters = []
 
-        //checking if user exists then use name from database [validation also exists for undefined last name]
-        if(user){
-            const {firstName,lastName} = user;
-            if(lastName==undefined){
-                donation.Name = firstName;
-                supporters.push(firstName)
-            }
-            else{
-
-            donation.Name = firstName + " " + lastName;
-            donation.user = user;
-            supporters.push(firstName + " " + lastName)
-            }
-        }
-        else{
             donation.Name = body.name;
             supporters.push(body.name)
-        }
 
         //getting fundraiserPage using id from params if any
         try{

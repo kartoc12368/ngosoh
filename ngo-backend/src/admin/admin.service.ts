@@ -4,8 +4,6 @@ import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import * as bcrypt from 'bcrypt';
 import { Constants } from 'src/utils/constants';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-import { UserRepository } from 'src/user/repo/user.repository';
-import { User } from 'src/user/entities/user.entity';
 import { DonationRepository } from 'src/donation/repo/donation.repository';
 import { Donation } from 'src/donation/entities/donation.entity';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
@@ -15,19 +13,11 @@ export class AdminService {
 
     constructor(
         private fundraiserRepository:FundRaiserRepository,
-        private userRepository:UserRepository,
         private donationRepository:DonationRepository,
         private fundraiserPageRepository:FundraiserPageRepository){}
 
     async createdByAdmin(createUserDto:any, password:string){
         const hashedPassword = await bcrypt.hash(password,10)
-        let user: User = new User();
-        user.email = createUserDto.email;
-        user.firstName = createUserDto.firstName;
-        user.lastName = createUserDto.lastName;
-        user.password = hashedPassword;
-        user.role = Constants.ROLES.FUNDRAISER_ROLE;
-        await this.userRepository.save(user)
         let fundraiser: Fundraiser = new Fundraiser();
         fundraiser.firstName = createUserDto.firstName;
         fundraiser.lastName = createUserDto.lastName;
@@ -35,7 +25,6 @@ export class AdminService {
         fundraiser.password = hashedPassword;
         fundraiser.role = Constants.ROLES.FUNDRAISER_ROLE;
         fundraiser.status = "active";
-        fundraiser.user = user;
         return await this.fundraiserRepository.save(fundraiser)
 
         // user.user = user1; 
@@ -74,11 +63,11 @@ export class AdminService {
     }
 
     async getAllFundraiser(){
-        return await this.fundraiserRepository.find();
-    }
 
-    async deleteUser(id:number){
-      return await this.userRepository.delete(id);
+        const fundraisers = await this.fundraiserRepository.find();
+        const filteredUsers = fundraisers.filter((fundraiser) => fundraiser.role !== 'ADMIN');
+        return filteredUsers;
+
     }
 
     async addOfflineDonation(body){

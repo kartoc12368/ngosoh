@@ -1,18 +1,17 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, ParseIntPipe, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { sendEmailDto } from 'src/mailer/mail.interface';
 import { MailerService } from 'src/mailer/mailer.service';
-import { UserRepository } from 'src/user/repo/user.repository';
 import { RoleGuard } from 'src/auth/guard/role.guard';
 import { Constants } from 'src/utils/constants';
-import { ProjectService } from 'src/project/project.service';
-import { UserService } from 'src/user/user.service';
 import { GeneratePasswordDto } from './dto/generate-password.dto';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { AddOfflineDonationDto } from './dto/offline-donation.dto';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-
+import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity'
+import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
+import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
 @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
 @ApiTags("Admin")
 @ApiSecurity("JWT-auth")
@@ -20,10 +19,10 @@ import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository'
 export class AdminController {  
   constructor(private readonly adminService: AdminService,
     private mailerService:MailerService,
-    private userRepository:UserRepository,
-    private projectService:ProjectService,
-    private userService:UserService,
-    private fundraiserRepository:FundRaiserRepository
+    private fundraiserRepository:FundRaiserRepository,
+    private fundraiserService:FundraiserService,
+    private fundraiserPageRepository:FundraiserPageRepository,
+    private fundraiserPage:FundraiserPage
     ) {}
 
   //change fundraiser status
@@ -34,8 +33,17 @@ export class AdminController {
   
  //delete fundraiser
   @Delete("/fundraiser/delete/:id")
-  deleteFundraiser(@Param('id',ParseIntPipe) id: number) {
+  async deleteFundraiser(@Param('id',ParseIntPipe) id: number) {
+    try{
+    let user = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}})
+    if(user.role=="ADMIN"){
+      throw new ForbiddenException("NOT ALLOWED")
+    }
     return this.adminService.deleteFundraiser(id);
+  }
+  catch(error){
+    throw new NotFoundException("Fundraiser Does not exist")
+  }
   }
 
   //get all fundraiser
@@ -47,8 +55,8 @@ export class AdminController {
   //generate password for fundraiser
   @Post("/generate")
  async generatePasswordByEmail(@Body(ValidationPipe) body:GeneratePasswordDto){
-  const isUserExists = await this.userRepository.findOne({where:{email: body.email}})
-  if(isUserExists && isUserExists.role == "FUNDRAISER"){
+  const isFundraiserExists = await this.fundraiserRepository.findOne({where:{email: body.email}})
+  if(isFundraiserExists && isFundraiserExists.role == "FUNDRAISER"){
     throw new BadRequestException("Email already in use")
   }    
 else{
@@ -71,31 +79,6 @@ else{
 }
   }
 
-  //delete User
-  @Delete("/user/delete/:id")
-  deleteUser(@Param('id',ParseIntPipe) id: number) {
-    return this.adminService.deleteUser(id);
-  }
-
-  //get all projects
-  @Get("projects")
-  getProjects(){
-    return this.projectService.getProjects();
-  }
-
-  //get project by id
-  @Get("project/:id")
-  async getProjectById(@Param("id",ParseIntPipe) project_id:number){
-    return await this.projectService.getProjectById(project_id)
-  }
-
-    //Get-all user route
-    @Get("/user")
-    findAll(@Req()req) {
-      return this.userService.findAll();
-    }
-  
-
     @Post("/addOfflineDonation")
     async addOfflineDonation(@Req() req, @Body() body:AddOfflineDonationDto){
       if(await this.fundraiserRepository.findOne({where:{fundraiser_id:body.fundraiser_id}})){
@@ -108,6 +91,26 @@ else{
       
     }
 
-
+    @ApiSecurity("JWT-auth")
+    @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))  
+    @Post("/createPage")
+    async createPage(@Req() req){
+      let fundraiser:Fundraiser = req.user;
+      let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(fundraiser.email)
+      let fundRaiserPage = await this.fundraiserPageRepository.findOne({where:{fundraiser:{fundraiser_id:fundRaiser.fundraiser_id}}})
+      console.log(fundRaiserPage)
+      if(fundRaiserPage==null){
+      const fundraiserPage:FundraiserPage = new FundraiserPage();
+      fundraiserPage.supporters = []
+      fundraiserPage.gallery = []
+      fundraiserPage.fundraiser = fundRaiser;
+      await this.fundraiserPageRepository.save(fundraiserPage);
+      return fundraiserPage;
+      }
+      else{
+        return "Fundraiser Page already exists"
+      }
+    }
+  
 
 }

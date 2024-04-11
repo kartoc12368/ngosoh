@@ -43,7 +43,7 @@ export class UpdateFundraiserDto {
         @ApiProperty()
         @IsString()
         @IsOptional()
-        country:string
+        country:string  
         
         @ApiProperty()
         @IsNumber()
