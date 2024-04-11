@@ -4,13 +4,9 @@ import { AuthGuard } from "@nestjs/passport";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { LoginDto } from "./dto/login.dto";
 import * as bcrypt from "bcrypt"
-import { sendEmailDto } from "src/mailer/mail.interface";
-import { MailerService } from "src/mailer/mailer.service";
-import { AdminService } from "src/admin/admin.service";
 import { FundraiserService } from "src/fundraiser/fundraiser.service";
 import { AuthService} from "src/auth/auth.service"
 import { ForgottenPasswordRepository } from "./repo/forgot-password.repo";
-import { response } from "express";
 import { Public } from "src/public.decorator";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";

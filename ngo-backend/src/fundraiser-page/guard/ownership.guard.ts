@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, NotFoundException } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { FundraiserPageRepository } from '../repo/fundraiser-page.repository';

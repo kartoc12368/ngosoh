@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext } from "@nestjs/common";
 import { Request } from "express";
-import { Observable } from "rxjs";
 
 export class RoleGuard implements CanActivate{
 

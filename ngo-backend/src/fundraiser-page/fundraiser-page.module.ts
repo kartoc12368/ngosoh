@@ -5,7 +5,6 @@ import { FundraiserModule } from 'src/fundraiser/fundraiser.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FundraiserPageRepository } from './repo/fundraiser-page.repository';
 import { FundraiserPage } from './entities/fundraiser-page.entity';
-import { DonationModule } from 'src/donation/donation.module';
 
 @Module({
   imports:[forwardRef(() =>FundraiserModule),TypeOrmModule.forFeature([FundraiserPage])],

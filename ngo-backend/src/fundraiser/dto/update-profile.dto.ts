@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { CreateDateColumn, IsNull, UpdateDateColumn } from "typeorm";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class UpdateFundraiserDto {
 

@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsEmpty, IsNotEmpty, IsString } from "class-validator";
-import { CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class ChangePasswordDto {
     @ApiProperty()

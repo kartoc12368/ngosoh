@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { IsAlpha, IsDecimal, IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class UpdateFundraiserPageDto{
 

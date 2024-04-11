@@ -1,6 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {Injectable, NotFoundException } from '@nestjs/common';
 import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
-import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import * as bcrypt from 'bcrypt';
 import { Constants } from 'src/utils/constants';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';

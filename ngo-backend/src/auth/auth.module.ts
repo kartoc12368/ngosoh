@@ -5,7 +5,6 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { MailerService } from 'src/mailer/mailer.service';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { AdminModule } from 'src/admin/admin.module';
 import { FundraiserModule } from 'src/fundraiser/fundraiser.module';

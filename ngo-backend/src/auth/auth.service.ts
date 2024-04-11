@@ -1,11 +1,8 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request, Response, response } from 'express';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import { sendEmailDto } from 'src/mailer/mail.interface';
 import { MailerService } from 'src/mailer/mailer.service';
 import { ForgottenPasswordRepository } from './repo/forgot-password.repo';
 import { ForgottenPassword } from './entities/forgot-password.entity';
-import { ConfigService } from '@nestjs/config';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 
 @Injectable()

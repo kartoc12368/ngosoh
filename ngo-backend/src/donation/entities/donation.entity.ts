@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity,ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Fundraiser } from "../../fundraiser/entities/fundraiser.entity";
 @Entity()
 export class Donation {

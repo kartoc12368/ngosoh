@@ -1,11 +1,7 @@
-import { Body, Injectable, NotFoundException, Req } from '@nestjs/common';
-import { Donation } from 'src/donation/entities/donation.entity';
+import { Injectable, NotFoundException,} from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { FundraiserPage } from './entities/fundraiser-page.entity';
 import { FundraiserPageRepository } from './repo/fundraiser-page.repository';
-import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-import { DonationRepository } from 'src/donation/repo/donation.repository';
 
 @Injectable()
 export class FundraiserPageService {

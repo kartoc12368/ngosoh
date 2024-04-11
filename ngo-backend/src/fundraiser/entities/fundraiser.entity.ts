@@ -1,9 +1,7 @@
-import { Field } from "@nestjs/graphql";
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Donation } from "../../donation/entities/donation.entity";
 import { IsNumber } from "class-validator";
 import { FundraiserPage } from "src/fundraiser-page/entities/fundraiser-page.entity";
-import { Exclude } from "class-transformer";
 
 @Entity()
 export class Fundraiser {
