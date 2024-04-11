@@ -9,9 +9,10 @@ import { GeneratePasswordDto } from './dto/generate-password.dto';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { AddOfflineDonationDto } from './dto/offline-donation.dto';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity'
+import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
+
 @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
 @ApiTags("Admin")
 @ApiSecurity("JWT-auth")
@@ -21,8 +22,7 @@ export class AdminController {
     private mailerService:MailerService,
     private fundraiserRepository:FundRaiserRepository,
     private fundraiserService:FundraiserService,
-    private fundraiserPageRepository:FundraiserPageRepository,
-    private fundraiserPage:FundraiserPage
+    private fundraiserPageRepository:FundraiserPageRepository
     ) {}
 
   //change fundraiser status
@@ -92,7 +92,7 @@ else{
     }
 
     @ApiSecurity("JWT-auth")
-    @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))  
+    @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))  
     @Post("/createPage")
     async createPage(@Req() req){
       let fundraiser:Fundraiser = req.user;
