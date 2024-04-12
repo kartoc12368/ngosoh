@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlpha, IsDecimal, IsNotEmpty} from "class-validator";
+import { IsAlpha, IsDecimal, IsNotEmpty,IsNumberString, IsOptional, IsString} from "class-validator";
 
 export class DonateDto{
 
@@ -10,6 +10,32 @@ export class DonateDto{
 
     @ApiProperty()
     @IsAlpha()
-    name:string;
+    @IsNotEmpty()
+    donor_name:string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    pan:string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    donor_email: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumberString()
+    donor_phone: number;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    donor_address: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    comments:string;
 
 }

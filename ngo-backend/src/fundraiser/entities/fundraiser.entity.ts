@@ -6,8 +6,8 @@ import { FundraiserPage } from "src/fundraiser-page/entities/fundraiser-page.ent
 @Entity()
 export class Fundraiser {
 
-    @PrimaryGeneratedColumn()
-    fundraiser_id: number;
+    @PrimaryGeneratedColumn("uuid")
+    fundraiser_id: string;
 
     @Column()
     firstName: string;

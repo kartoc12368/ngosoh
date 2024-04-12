@@ -4,8 +4,8 @@ import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGenerate
 @Entity()
 
 export class FundraiserPage{
-    @PrimaryGeneratedColumn()
-    id:number;
+    @PrimaryGeneratedColumn("uuid")
+    id:string;
 
     @Column({default:0})
     target_amount:number;
@@ -22,6 +22,9 @@ export class FundraiserPage{
     @Column({nullable:true})
     money_raised_for:string;
 
+    @Column({nullable:true})
+    story:string;    
+
     @Column('text',{array: true,nullable:true})
     supporters:string[];
 
@@ -34,8 +37,8 @@ export class FundraiserPage{
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     public updated_at: Date;
 
-    @OneToOne(()=>Fundraiser,fundraiser=>fundraiser.fundraiser_page,{onDelete:"CASCADE",eager:true})
-    @JoinColumn()
+    @OneToOne(()=>Fundraiser,fundraiser=>fundraiser.fundraiser_page,{onDelete:"CASCADE"})
+    @JoinColumn({name:"fundraiser_uuid",referencedColumnName:"fundraiser_id"})
     fundraiser:Fundraiser;
 
 

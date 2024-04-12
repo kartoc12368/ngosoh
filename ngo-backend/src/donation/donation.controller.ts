@@ -12,15 +12,15 @@ export class DonationController {
 
     @Post("/donate")
     @Public()
-    async donate(@Req()req,@Body(ValidationPipe)body:DonateDto){
-      await this.donationService.donate(req,body);
+    async donate(@Body(ValidationPipe)body:DonateDto){
+      await this.donationService.donate(body);
     }
   
 
   @Post("/fundraiser-page/:id/donate")
   @Public()
-  async donateToFundRaiser(@Req()req,@Body(ValidationPipe)body:DonateDto,@Param("id",ParseIntPipe) id:number){
-    await this.donationService.donate(req,body,id);
+  async donateToFundRaiser(@Body(ValidationPipe)body:DonateDto,@Param("id",ParseIntPipe) id:number){
+    await this.donationService.donate(body,id);
   }
 
 

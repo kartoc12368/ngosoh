@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, ParseIntPipe, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { sendEmailDto } from 'src/mailer/mail.interface';
@@ -12,6 +12,26 @@ import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository'
 import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
+import { CreateFundraiserPageAdminDto } from './dto/create-fundraiserpage-admin.dto';
+import { DonationRepository } from 'src/donation/repo/donation.repository';
+import { diskStorage } from 'multer';
+import {v4 as uuidv4} from "uuid";
+import * as path from 'path';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { UpdateFundraiserPageDto } from 'src/fundraiser-page/dto/update-fundraiser-page.dto';
+import { FundraiserPageService } from 'src/fundraiser-page/fundraiser-page.service';
+
+
+export const storage =   {  storage:diskStorage({
+  destination:"./uploads/fundraiserPageImages",
+  filename:(req,file,cb)=>{
+    const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4();
+    const extension:string = path.parse(file.originalname).ext;
+
+    cb(null, `${filename}${extension}`)
+  } 
+})
+}
 
 @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
 @ApiTags("Admin")
@@ -22,18 +42,20 @@ export class AdminController {
     private mailerService:MailerService,
     private fundraiserRepository:FundRaiserRepository,
     private fundraiserService:FundraiserService,
-    private fundraiserPageRepository:FundraiserPageRepository
+    private fundraiserPageRepository:FundraiserPageRepository,
+    private donationRepository:DonationRepository,
+    private fundraiserPageService:FundraiserPageService
     ) {}
 
   //change fundraiser status
   @Post("/fundraiser/status/:id")
-  changeFundraiserStatus(@Param('id',ParseIntPipe) id: number) {
+  changeFundraiserStatus(@Param('id',ParseUUIDPipe) id: string) {
     return this.adminService.changeFundraiserStatus(id);
   }
   
  //delete fundraiser
   @Delete("/fundraiser/delete/:id")
-  async deleteFundraiser(@Param('id',ParseIntPipe) id: number) {
+  async deleteFundraiser(@Param('id',ParseUUIDPipe) id: string) {
     try{
     let user = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}})
     if(user.role=="ADMIN"){
@@ -81,7 +103,7 @@ else{
 
     @Post("/addOfflineDonation")
     async addOfflineDonation(@Req() req, @Body() body:AddOfflineDonationDto){
-      if(await this.fundraiserRepository.findOne({where:{fundraiser_id:body.fundraiser_id}})){
+      if(await this.fundraiserRepository.findOne({where:{email:body.email}})){
         return await this.adminService.addOfflineDonation(body)
       }
       else{
@@ -92,11 +114,11 @@ else{
     }
 
     @ApiSecurity("JWT-auth")
-    @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))  
+    @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))  
     @Post("/createPage")
-    async createPage(@Req() req){
-      let fundraiser:Fundraiser = req.user;
-      let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(fundraiser.email)
+    async createPage(@Req() req,@Body() body:CreateFundraiserPageAdminDto){
+      try{
+      let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(body.email)
       let fundRaiserPage = await this.fundraiserPageRepository.findOne({where:{fundraiser:{fundraiser_id:fundRaiser.fundraiser_id}}})
       console.log(fundRaiserPage)
       if(fundRaiserPage==null){
@@ -111,6 +133,59 @@ else{
         return "Fundraiser Page already exists"
       }
     }
+    catch(error){
+      throw new NotFoundException("Fundraiser does not exist")
+    }
+    }
   
 
-}
+    //get all donations
+    @Get("/donations")
+    async getAllDonations(){
+      return await this.donationRepository.find({relations:["fundraiser"]})
+    }
+
+    @Get("/fundraiserPages")
+    async getAllFundraiserPages(){
+      return await this.fundraiserPageRepository.find()
+    }
+
+    @ApiSecurity("JWT-auth")
+    @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
+    @Put("fundraiserPage/:id/updatePage")
+    @UseInterceptors(FilesInterceptor("file",20,storage))
+    async updatePage(@UploadedFiles() files,@Body() body,@Param("id")id:string){
+      console.log(files)
+      // let user:User = req.user;
+      body = JSON.parse(body.data)
+  
+      const dtoInstance = new UpdateFundraiserPageDto(body);
+      const dtoKeys = Object.keys(dtoInstance);
+      // console.log(dtoKeys)
+  
+    
+      // Filter out extra parameters from the body
+      const filteredBody = Object.keys(body)
+        .filter(key => dtoKeys.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = body[key];
+          return obj;
+        }, {});
+    
+      // console.log(filteredBody)
+      const response = [];
+      try {
+        files.forEach(file => {
+          // const fileReponse = {
+          //   filename: file.filename,
+          // };
+          response.push(file.filename);
+          // console.log(response)
+        });
+      
+      } catch (error) {
+        return true;
+      }
+  return await this.fundraiserPageService.update(filteredBody,response,id)
+    }
+  }

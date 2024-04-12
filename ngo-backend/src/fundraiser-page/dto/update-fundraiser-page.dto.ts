@@ -6,19 +6,23 @@ export class UpdateFundraiserPageDto{
     @ApiProperty()
     @IsNumber()
     @IsNotEmpty()
-    target_amount:number
+    target_amount:number;
 
     @ApiProperty()
     @IsString()
-    resolution:string
+    resolution:string;
 
     @ApiProperty()
     @IsString()
-    about:string
+    about:string;
 
     @ApiProperty()
     @IsString()
-    money_raised_for:string
+    money_raised_for:string;
+
+    @ApiProperty()
+    @IsString()
+    story:string;
 
     constructor(body?: any) {
         // Initialize the properties based on the provided body data, if any
@@ -28,6 +32,7 @@ export class UpdateFundraiserPageDto{
           this.resolution = body.resolution;
           this.about = body.about;
           this.money_raised_for = body.money_raised_for;
+          this.story = body.story;
         }
       }
     

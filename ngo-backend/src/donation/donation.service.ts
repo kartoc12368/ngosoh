@@ -11,23 +11,21 @@ export class DonationService {
         private readonly fundRaiserRepository:FundRaiserRepository,
         private readonly fundRaiserPageRepository:FundraiserPageRepository){}
 
-    async donate(req,body,id?){
-        //getting logged user if any
-
+    async donate(body,id?){
         //making a new donation object to save
         let donation:Donation = new Donation();
 
         //creating empty supporter array to push to supporters of fundraiserPage
         let supporters = []
-
-            donation.Name = body.name;
-            supporters.push(body.name)
+            donation.donor_name = body.donor_name;
+            supporters.push(body.donor_name)
 
         //getting fundraiserPage using id from params if any
         try{
             if(id){
-            let fundraiserPage = await this.fundRaiserPageRepository.findOne({where:{id:id}})
-            
+
+            let fundraiserPage = await this.fundRaiserPageRepository.findOne({where:{id:id},relations:["fundraiser"]})
+
             //getting existing fundraiserPage supporters anf pushing new supporters
             let supportersOfFundraiser = fundraiserPage.supporters
             for(let i = 0; i <supporters.length; i++){
@@ -61,6 +59,11 @@ export class DonationService {
         //[whether fundraiser id is passed or not]
         finally{
         donation.amount = body.amount;
+        donation.pan = body.pan;
+        donation.donor_email = body.donor_email;
+        donation.donor_phone = body.donor_phone;
+        donation.donor_address = body.donor_address;
+        donation.comments = body.comments;
 
         
         return this.donationRepository.save(donation);

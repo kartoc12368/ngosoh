@@ -33,7 +33,7 @@ export class AdminService {
       
     }
 
-    async changeFundraiserStatus(id:number){
+    async changeFundraiserStatus(id:string){
         // return await this.fundraiserRepository.update(id,{status:"inactive"});
         const fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}});
 
@@ -51,7 +51,7 @@ export class AdminService {
       
     }  
     
-    async deleteFundraiser(id:number){
+    async deleteFundraiser(id:string){
         const fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}});
 
         if (!fundraiser) {
@@ -73,21 +73,23 @@ export class AdminService {
 
       //same code from donate service here admin passes data in body
       let donation:Donation = new Donation();
-      let fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:body.fundraiserPage_id}})
+      let fundraiser:Fundraiser = await this.fundraiserRepository.findOne({where:{email:body.email},relations:["fundraiser_page"]})
+      console.log(fundraiser)
+      let fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:fundraiser.fundraiser_page.id}})
+      console.log(fundraiserPage)
       let supportersOfFundraiser = fundraiserPage.supporters
       if(supportersOfFundraiser == null){
         supportersOfFundraiser = []
       }
-        supportersOfFundraiser.push(body.Name)
+        supportersOfFundraiser.push(body.donor_name)
         console.log(supportersOfFundraiser)
-      let fundraiser:Fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:fundraiserPage.fundraiser.fundraiser_id}})
-      if(fundraiser.fundraiser_id==body.fundraiser_id){
+      if(fundraiser!=null){
       const total_amount_raised = fundraiser.total_amount_raised + parseInt(body.amount);
       const total_donations = fundraiser.total_donations + 1;
       await this.fundraiserRepository.update(fundraiser.fundraiser_id,{total_amount_raised:total_amount_raised,
       total_donations:total_donations})
       const newAmount:number = fundraiserPage.raised_amount + parseInt(body.amount);
-      await this.fundraiserPageRepository.update(body.fundraiserPage_id,{ raised_amount:newAmount,supporters:supportersOfFundraiser})
+      await this.fundraiserPageRepository.update(fundraiserPage.id,{ raised_amount:newAmount,supporters:supportersOfFundraiser})
       }
       else{
         return "Fundraiser Page Not Found"
@@ -95,7 +97,12 @@ export class AdminService {
       if(fundraiser.status == "active"){
         donation.fundraiser = fundraiser;
         donation.amount = body.amount;
-        donation.Name = body.Name;
+        donation.donor_name = body.donor_name;
+        donation.comments = body.comments;
+        donation.pan = body.pan;
+        donation.donor_email = body.donor_email;
+        donation.donor_phone = body.donor_phone;
+        donation.donor_address = body.donor_address;
         return this.donationRepository.save(donation);  
       }
       else{
@@ -105,4 +112,31 @@ export class AdminService {
 
 
     }
+
+    async update(body,files,PageId){
+      try {
+
+      //finding fundraiserPage using id from parmameters and updating data using body data 
+      let fundRaiserPageNew = await this.fundraiserPageRepository.findOne({where:{id:PageId}})
+      console.log(fundRaiserPageNew)
+      await this.fundraiserPageRepository.update(PageId,body) 
+
+      //accessing existing galley of fundraiserPage and pushing new uploaded files
+      const fundraiserGallery = fundRaiserPageNew.gallery
+      for(let i = 0; i <files.length; i++){
+          fundraiserGallery.push(files[i])
+      }
+      console.log(fundraiserGallery)
+
+
+      //saving new data of fundraiserPage with gallery
+      await this.fundraiserPageRepository.update(PageId,{gallery:fundraiserGallery}) 
+
+  } catch (error) {
+      console.log(error)
+      throw new NotFoundException("Not Found")
+  }
+
+  }
+
 }

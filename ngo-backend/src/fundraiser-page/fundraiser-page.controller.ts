@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FundraiserPageService } from './fundraiser-page.service';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { Public } from 'src/public.decorator';
@@ -12,10 +12,13 @@ import { UpdateFundraiserPageDto } from './dto/update-fundraiser-page.dto';
 import { OwnershipGuard } from './guard/ownership.guard';
 import { diskStorage } from 'multer';
 import {v4 as uuidv4} from "uuid";
-import path from 'path';
+import * as path from 'path';
+import { FundraiserPage } from './entities/fundraiser-page.entity';
+import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
+import * as fs from 'fs'; // Import entire fs module
 
 export const storage =   {  storage:diskStorage({
-  destination:"./uploads/profileImages",
+  destination:"./uploads/fundraiserPageImages",
   filename:(req,file,cb)=>{
     const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4();
     const extension:string = path.parse(file.originalname).ext;
@@ -41,6 +44,7 @@ export class FundraiserPageController {
   @Put("/:id/updatePage")
   @UseInterceptors(FilesInterceptor("file",20,storage))
   async updatePage(@UploadedFiles() files,@Req() req,@Body() body,@Param("id")id:number){
+    console.log(files)
     // let user:User = req.user;
     body = JSON.parse(body.data)
 
@@ -78,7 +82,7 @@ return await this.fundraiserPageService.update(filteredBody,response,id)
     //public page for fundraiser
     @Get(":id")
     @Public()
-    async getFundraiserById(@Param("id",ParseIntPipe) id:number){
+    async getFundraiserById(@Param("id",ParseIntPipe) id:string){
       try {
         const fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:id}});
         if (!fundraiserPage) {
@@ -89,5 +93,30 @@ return await this.fundraiserPageService.update(filteredBody,response,id)
         throw new NotFoundException("Fundraiser Page not found")
       }
     }
+
+    @Delete(":id")
+    async deleteGalleryImage(@Param("id"  )filePath:string,@Req() req){
+      let fundraiser= req.user;
+      const filepath = `uploads/fundraiserPageImages/${filePath}`; // Assuming file path construction logic
+      let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:fundraiser.id},relations:["fundraiser_page"]})
+      let fundraiserPage:FundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:fundRaiser.fundraiser_page.id}})
+      let gallery = fundraiserPage.gallery;
+      const galleryNew = gallery.filter(function (image) {
+        return image !== filePath;
+    });
+
+      try{
+        await fs.promises.unlink(filepath); // Use promises for async deletion
+        await this.fundraiserPageRepository.update(fundraiserPage.id,{gallery:galleryNew})
+        return "Image Deleted";
   
+      }
+      catch(error){
+        throw new NotFoundException("Image Does not exist")
+  
+      }
+    
+    }
+  
+
 }

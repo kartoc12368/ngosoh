@@ -10,6 +10,6 @@ import { FundraiserPage } from './entities/fundraiser-page.entity';
   imports:[forwardRef(() =>FundraiserModule),TypeOrmModule.forFeature([FundraiserPage])],
   controllers: [FundraiserPageController],
   providers: [FundraiserPageService,FundraiserPageRepository],
-  exports:[FundraiserPageRepository]
+  exports:[FundraiserPageRepository,FundraiserPageService]
 })
 export class FundraiserPageModule {}

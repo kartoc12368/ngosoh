@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Put, Req, Res, UploadedFile, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Post, Put, Query, Req, Res, UploadedFile, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { FundraiserService } from './fundraiser.service';
 import { RoleGuard } from 'src/auth/guard/role.guard';
 import { Constants } from 'src/utils/constants';
@@ -12,12 +12,16 @@ import { of } from 'rxjs';
 import * as path from 'path';
 import { Fundraiser } from './entities/fundraiser.entity';
 import { diskStorage } from 'multer';
+import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
+import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
+import { FindDonationsDto } from './dto/find-donation.dto';
 
 export const storage =   {  storage:diskStorage({
    destination:"./uploads/profileImages", filename:(req,file,cb)=>{ 
     const filename:string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4(); 
     const extension:string = path.parse(file.originalname).ext; 
     cb(null, `${filename}${extension}`) } }) }
+    
 @ApiTags("FundRaiser")
 @ApiSecurity("JWT-auth")
 @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
@@ -25,6 +29,7 @@ export const storage =   {  storage:diskStorage({
 export class FundraiserController {
   constructor(private readonly fundraiserService: FundraiserService,
     private fundRaiserRepository:FundRaiserRepository,
+    private fundraiserPageRepository:FundraiserPageRepository
   ) {}
 
   //change Password Fundraiser
@@ -56,7 +61,7 @@ export class FundraiserController {
   @Get("/fundraiser-page")
   async getAllFundraiserPages(@Req() req){
     let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
-    return this.fundraiserService.getAllFundraiserPages(fundRaiser);
+    return this.fundraiserService.getFundraiserPage(fundRaiser);
   }
   
   //upload fundraiser profileImage
@@ -82,4 +87,36 @@ export class FundraiserController {
     let fundraiser:Fundraiser=req.user
     return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
   }
+
+  @ApiSecurity("JWT-auth")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))  
+  @Post("/createPage")
+  async createPage(@Req() req){
+    try{
+    let fundRaiser = await this.fundraiserService.findFundRaiserByEmail(req.user.email)
+    let fundRaiserPage = await this.fundraiserPageRepository.findOne({where:{fundraiser:{fundraiser_id:fundRaiser.fundraiser_id}}})
+    console.log(fundRaiserPage)
+    if(fundRaiserPage==null){
+    const fundraiserPage:FundraiserPage = new FundraiserPage();
+    fundraiserPage.supporters = []
+    fundraiserPage.gallery = []
+    fundraiserPage.fundraiser = fundRaiser;
+    await this.fundraiserPageRepository.save(fundraiserPage);
+    return fundraiserPage;
+    }
+    else{
+      return "Fundraiser Page already exists"
+    }
+  }
+  catch(error){
+    throw new NotFoundException("Fundraiser does not exist")
+  }
+}
+
+@Get("/get")
+async findAl(@Query() query:FindDonationsDto){
+  console.log(query)
+  return await this.fundraiserService.findMany(query)
+}
+
 }

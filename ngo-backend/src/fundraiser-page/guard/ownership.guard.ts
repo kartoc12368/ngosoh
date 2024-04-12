@@ -16,9 +16,14 @@ export class OwnershipGuard implements CanActivate {
     return this.checkOwnership(dataId,user.email);
   }
 
-  async checkOwnership(dataId: number, email:string): Promise<boolean> {
-    const fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:dataId}});
+  async checkOwnership(dataId: string, email:string): Promise<boolean> {
+    console.log("hello")
+    const fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:dataId},relations:["fundraiser"]});
     const fundraiser = await this.fundraiserRepository.findOne({where:{email:email}})
+    if(fundraiser.role == "ADMIN"){
+      console.log(fundraiser.role)
+      return true;
+    }
     if (fundraiserPage==null) {
       throw new NotFoundException("Fundraiser page not found")
     }
