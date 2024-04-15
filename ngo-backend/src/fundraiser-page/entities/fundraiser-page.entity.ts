@@ -17,9 +17,6 @@ export class FundraiserPage{
     resolution:string;
 
     @Column({nullable:true})
-    about:string;
-
-    @Column({nullable:true})
     money_raised_for:string;
 
     @Column({nullable:true})

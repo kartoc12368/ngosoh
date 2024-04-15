@@ -15,6 +15,10 @@ import { diskStorage } from 'multer';
 import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 import { FindDonationsDto } from './dto/find-donation.dto';
+import * as exceljs from "exceljs";
+import { DonationRepository } from 'src/donation/repo/donation.repository';
+import { Public } from 'src/public.decorator';
+import * as fs from "fs"
 
 export const storage =   {  storage:diskStorage({
    destination:"./uploads/profileImages", filename:(req,file,cb)=>{ 
@@ -29,7 +33,8 @@ export const storage =   {  storage:diskStorage({
 export class FundraiserController {
   constructor(private readonly fundraiserService: FundraiserService,
     private fundRaiserRepository:FundRaiserRepository,
-    private fundraiserPageRepository:FundraiserPageRepository
+    private fundraiserPageRepository:FundraiserPageRepository,
+    private donationRepository:DonationRepository,
   ) {}
 
   //change Password Fundraiser
@@ -117,5 +122,96 @@ export class FundraiserController {
 async findAll(@Query() query:FindDonationsDto,@Req() req){
   return await this.fundraiserService.findMany(query,req)
 }
+
+// @Get("/donations/download")
+// async downloadExcel(@Req() req,@Res() res){
+//   try {
+//     // let donations = await this.donationRepository.find({where:{fundraiser:{fundraiser_id:req.user.id}}})
+//     let donations = await this.donationRepository.find();
+//     let workbook = new exceljs.Workbook();
+
+//     const sheet = workbook.addWorksheet("donations")
+//     sheet.columns = [
+//       { header: "Donation Id", key: "donation_id_frontend" },
+//       { header: "Donation Date", key: "created_at" } ,
+//       { header: "Donation Amount", key: "amount" },
+//     ]
+
+//    await donations.map((value,idx)=>{
+//       sheet.addRow({
+//         donation_id_frontend:value.donation_id_frontend,
+//         created_at:value.created_at,
+//         amount:value.amount,
+//       });
+//     });
+    
+//     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheet.sheet"); 
+//     res.setHeader("Content-Disposition", "attachment; filename=donations.xlsx");
+
+//     workbook.xlsx.write(res)
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
+@Get('/donations/download')
+async downloadExcel(@Req() req, @Res() res) {
+  try {
+    const donations = await this.donationRepository.find({
+      where: { fundraiser: { fundraiser_id: req.user.id } }, // Filter by fundraiser
+    });
+
+    const workbook = new exceljs.Workbook();
+    const sheet = workbook.addWorksheet('donations');
+    sheet.columns = [
+      { header: 'Donation Id', key: 'donation_id_frontend' },
+      { header: 'Donation Date', key: 'created_at' },
+      {header: 'Donor Name', key: 'donor_name' },
+      { header: 'Donation Amount', key: 'amount' },
+      {header: 'Payment Type', key: 'payment_type' },
+      {header:'Payment Status', key: 'payment_status'},
+      {header:'80G Certificate', key:'certificate'}
+    ];
+
+    donations.forEach((value, idx) => {
+      sheet.addRow({
+        donation_id_frontend: value.donation_id_frontend,
+        created_at: value.created_at,
+        donor_name: value.donor_name,
+        amount: value.amount,
+        payment_type:value.payment_type,
+        payment_status:value.payment_status,
+        certificate:value.certificate
+      });
+    });
+
+    const downloadsFolder = path.join(__dirname, '../..', 'downloads');
+    if (!fs.existsSync(downloadsFolder)) {
+      try {
+        fs.mkdirSync(downloadsFolder);
+      } catch (error) {
+        console.error('Error creating downloads folder:', error);
+        // Handle the error gracefully
+      }
+    }
+
+    const filename = `${uuidv4()}.xlsx`;
+    const filePath = path.join(downloadsFolder, filename);
+
+    await workbook.xlsx.writeFile(filePath);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheet.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.end();
+  } catch (error) {
+    console.error('Error creating Excel file:', error);
+  }
+}
+
+@Get("/fundraiser-page/:filename")  
+downloadReport(@Param("filename") filename,@Res() res){
+  return of(res.sendFile(path.join(process.cwd(), "uploads/fundraiserPageImages/"+ filename)));
+}
+
 
 }

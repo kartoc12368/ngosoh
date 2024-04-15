@@ -153,39 +153,7 @@ else{
     @ApiSecurity("JWT-auth")
     @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
     @Put("fundraiserPage/:id/updatePage")
-    @UseInterceptors(FilesInterceptor("file",20,storage))
-    async updatePage(@UploadedFiles() files,@Body() body,@Param("id")id:string){
-      console.log(files)
-      // let user:User = req.user;
-      body = JSON.parse(body.data)
-  
-      const dtoInstance = new UpdateFundraiserPageDto(body);
-      const dtoKeys = Object.keys(dtoInstance);
-      // console.log(dtoKeys)
-  
-    
-      // Filter out extra parameters from the body
-      const filteredBody = Object.keys(body)
-        .filter(key => dtoKeys.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = body[key];
-          return obj;
-        }, {});
-    
-      // console.log(filteredBody)
-      const response = [];
-      try {
-        files.forEach(file => {
-          // const fileReponse = {
-          //   filename: file.filename,
-          // };
-          response.push(file.filename);
-          // console.log(response)
-        });
-      
-      } catch (error) {
-        return true;
-      }
-  return await this.fundraiserPageService.update(filteredBody,response,id)
+    async updatePage(@Body() body:UpdateFundraiserPageDto,@Param("id",ParseUUIDPipe)id:string){
+  return await this.fundraiserPageService.update(body,id)
     }
   }

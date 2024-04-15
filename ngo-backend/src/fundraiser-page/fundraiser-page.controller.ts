@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FundraiserPageService } from './fundraiser-page.service';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { Public } from 'src/public.decorator';
@@ -16,6 +16,8 @@ import * as path from 'path';
 import { FundraiserPage } from './entities/fundraiser-page.entity';
 import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
 import * as fs from 'fs'; // Import entire fs module
+import { FileInterceptor } from '@nestjs/platform-express';
+
 
 export const storage =   {  storage:diskStorage({
   destination:"./uploads/fundraiserPageImages",
@@ -39,50 +41,69 @@ export class FundraiserPageController {
     ) {}
 
 
+    @Post("/:id/updatePage/upload")
+    @UseInterceptors(FileInterceptor("file",storage))
+    async uploadFile(@UploadedFile() file,@Req() req,@Param("id",ParseUUIDPipe)PageId:string){
+      let fundraiser:Fundraiser = req.user;
+      let fundRaiserPageNew = await this.fundraiserPageRepository.findOne({where:{id:PageId}})
+            //accessing existing galley of fundraiserPage and pushing new uploaded files
+        const fundraiserGallery = fundRaiserPageNew.gallery
+            fundraiserGallery.push(file.filename)
+        
+        console.log(fundraiserGallery)
+
+
+        //saving new data of fundraiserPage with gallery
+        await this.fundraiserPageRepository.update(PageId,{gallery:fundraiserGallery}) 
+
+
+    }
+
   @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE),OwnershipGuard)
   @Put("/:id/updatePage")
-  @UseInterceptors(FilesInterceptor("file",20,storage))
-  async updatePage(@UploadedFiles() files,@Req() req,@Body() body,@Param("id")id:number){
-    console.log(files)
+  // @UseInterceptors(FilesInterceptor("file",20,storage))
+  async updatePage(@Req() req,@Body() body:UpdateFundraiserPageDto,@Param("id",ParseUUIDPipe)id:string){
+    console.log("new")
+    console.log(body)
     // let user:User = req.user;
-    body = JSON.parse(body.data)
+    // body = JSON.parse(body.data)
 
-    const dtoInstance = new UpdateFundraiserPageDto(body);
-    const dtoKeys = Object.keys(dtoInstance);
+    // const dtoInstance = new UpdateFundraiserPageDto(body);
+    // const dtoKeys = Object.keys(dtoInstance);
     // console.log(dtoKeys)
 
   
     // Filter out extra parameters from the body
-    const filteredBody = Object.keys(body)
-      .filter(key => dtoKeys.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = body[key];
-        return obj;
-      }, {});
+    // const filteredBody = Object.keys(body)
+    //   .filter(key => dtoKeys.includes(key))
+    //   .reduce((obj, key) => {
+    //     obj[key] = body[key];
+    //     return obj;
+    //   }, {});
   
-    // console.log(filteredBody)
-    const response = [];
-    try {
-      files.forEach(file => {
-        // const fileReponse = {
-        //   filename: file.filename,
-        // };
-        response.push(file.filename);
-        // console.log(response)
-      });
+    // // console.log(filteredBody)
+    // const response = [];
+    // try {
+    //   files.forEach(file => {
+    //     // const fileReponse = {
+    //     //   filename: file.filename,
+    //     // };
+    //     response.push(file.filename);
+    //     // console.log(response)
+    //   });
     
-    } catch (error) {
-      return true;
-    }
-return await this.fundraiserPageService.update(filteredBody,response,id)
+    // } catch (error) {
+    //   return true;
+    // }
+return await this.fundraiserPageService.update(body,id)
   }
 
 
     //public page for fundraiser
     @Get(":id")
     @Public()
-    async getFundraiserById(@Param("id",ParseIntPipe) id:string){
+    async getFundraiserById(@Param("id",ParseUUIDPipe) id:string){
       try {
         const fundraiserPage = await this.fundraiserPageRepository.findOne({where:{id:id}});
         if (!fundraiserPage) {

@@ -11,7 +11,7 @@ export class FundraiserPageService {
         private fundRaiserRepository:FundRaiserRepository,
         ){}
 
-    async update(body,files,PageId){
+    async update(body,PageId){
         try {
 
         //finding fundraiserPage using id from parmameters and updating data using body data 
@@ -19,16 +19,6 @@ export class FundraiserPageService {
         console.log(fundRaiserPageNew)
         await this.fundRaiserPageRepository.update(PageId,body) 
 
-        //accessing existing galley of fundraiserPage and pushing new uploaded files
-        const fundraiserGallery = fundRaiserPageNew.gallery
-        for(let i = 0; i <files.length; i++){
-            fundraiserGallery.push(files[i])
-        }
-        console.log(fundraiserGallery)
-
-
-        //saving new data of fundraiserPage with gallery
-        await this.fundRaiserPageRepository.update(PageId,{gallery:fundraiserGallery}) 
 
     } catch (error) {
         console.log(error)

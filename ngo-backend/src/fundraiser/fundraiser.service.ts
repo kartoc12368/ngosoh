@@ -72,7 +72,8 @@ export class FundraiserService {
     }  
 
     async getFundraiserPage(fundraiser){
-      return await this.fundraiserPageRepository.findOne({where:{fundraiser:{fundraiser_id:fundraiser.fundraiser_id}}})
+      console.log(fundraiser)
+      return await this.fundraiserPageRepository.findOne({select:["fundraiser"],where:{fundraiser:{fundraiser_id:fundraiser.fundraiser_id}}})
     }
     
     async getDonationByIdFundraiser(user){
