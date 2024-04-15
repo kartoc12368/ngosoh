@@ -1,25 +1,33 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class FindDonationsDto {
 
+@ApiProperty()    
 @IsString()    
 @IsOptional()
 payment_option?:string;
 
 @IsString() 
+@ApiProperty()    
 @IsOptional()
 payment_status?:string;
 
-@IsString()  
+@ApiProperty()    
+@IsDate()  
 @IsOptional()
+@Type(()=>Date)
 from_date?:string;
 
-@IsString()  
+@ApiProperty()    
+@IsDate()  
+@Type(()=>Date)
 @IsOptional()
 to_date?:string;
 
-@IsString()   
+@ApiProperty()    
 @IsOptional()
-donation_id?:string;
+@Type(()=>Number)
+donation_id?:number;
 }

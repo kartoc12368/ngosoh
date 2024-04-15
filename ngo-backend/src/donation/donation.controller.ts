@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseIntPipe, Post, Req, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, ParseUUIDPipe, Post, Req, ValidationPipe } from '@nestjs/common';
 import { DonationService } from './donation.service';
 import { Public } from 'src/public.decorator';
 import { ApiTags } from '@nestjs/swagger';
@@ -19,7 +19,8 @@ export class DonationController {
 
   @Post("/fundraiser-page/:id/donate")
   @Public()
-  async donateToFundRaiser(@Body(ValidationPipe)body:DonateDto,@Param("id",ParseIntPipe) id:number){
+  async donateToFundRaiser(@Body(ValidationPipe)body:DonateDto,@Param("id",ParseUUIDPipe) id:string){
+    console.log(id)
     await this.donationService.donate(body,id);
   }
 

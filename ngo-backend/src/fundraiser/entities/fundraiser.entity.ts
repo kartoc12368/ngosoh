@@ -73,7 +73,7 @@ export class Fundraiser {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     public updated_at: Date;
 
-    @OneToMany(()=>Donation,donation=>donation.fundraiser)
+    @OneToMany(()=>Donation,donation=>donation.fundraiser,{onDelete:"SET NULL"})
     donations:Donation[];
 
     @OneToOne(()=>FundraiserPage,fundraiserPage=>fundraiserPage.fundraiser,{"onDelete":"CASCADE"})

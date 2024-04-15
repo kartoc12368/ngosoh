@@ -82,11 +82,11 @@ export class FundraiserController {
 
 
 
-  @Get("/donations")
-  async getDonationsById(@Req() req){
-    let fundraiser:Fundraiser=req.user
-    return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
-  }
+  // @Get("/donations")
+  // async getDonationsById(@Req() req){
+  //   let fundraiser:Fundraiser=req.user
+  //   return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
+  // }
 
   @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))  
@@ -113,10 +113,9 @@ export class FundraiserController {
   }
 }
 
-@Get("/get")
-async findAl(@Query() query:FindDonationsDto){
-  console.log(query)
-  return await this.fundraiserService.findMany(query)
+@Get("/donations")
+async findAll(@Query() query:FindDonationsDto,@Req() req){
+  return await this.fundraiserService.findMany(query,req)
 }
 
 }

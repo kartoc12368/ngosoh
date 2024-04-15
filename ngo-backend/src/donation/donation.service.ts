@@ -25,6 +25,11 @@ export class DonationService {
             if(id){
 
             let fundraiserPage = await this.fundRaiserPageRepository.findOne({where:{id:id},relations:["fundraiser"]})
+            console.log(fundraiserPage)
+
+            if(!fundraiserPage){
+                throw new NotFoundException("Fundraiser Page not found");
+            }
 
             //getting existing fundraiserPage supporters anf pushing new supporters
             let supportersOfFundraiser = fundraiserPage.supporters
@@ -32,12 +37,10 @@ export class DonationService {
                 supportersOfFundraiser.push(supporters[i])
             }
     
-            if(!fundraiserPage){
-                throw new NotFoundException("Fundraiser Page not found");
-            }
             
             //getting fundraiser to update its dashboard content
             let fundraiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:fundraiserPage.fundraiser.fundraiser_id}})
+            console.log(fundraiser)
             const total_amount_raised = fundraiser.total_amount_raised + parseInt(body.amount);
             const total_donations = fundraiser.total_donations + 1;
             await this.fundRaiserRepository.update(fundraiser.fundraiser_id,{total_amount_raised:total_amount_raised,

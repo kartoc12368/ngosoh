@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity,ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity,Generated,ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Fundraiser } from "../../fundraiser/entities/fundraiser.entity";
 
 export enum PaymentRole {
@@ -19,8 +19,12 @@ export class Donation {
     @PrimaryGeneratedColumn("uuid")
     donation_id: string;
 
+    @Generated()
     @Column()
-    amount: number;
+    donation_id_frontend:number;
+
+    @Column()
+    amount: number; 
 
     @Column({nullable:true})
     donor_name: string;
