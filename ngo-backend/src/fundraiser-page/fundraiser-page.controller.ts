@@ -41,6 +41,7 @@ export class FundraiserPageController {
     ) {}
 
 
+    //upload images for fundraiserPage One by One
     @Post("/:id/updatePage/upload")
     @UseInterceptors(FileInterceptor("file",storage))
     async uploadFile(@UploadedFile() file,@Req() req,@Param("id",ParseUUIDPipe)PageId:string){
@@ -59,6 +60,7 @@ export class FundraiserPageController {
 
     }
 
+    //update FundraiserPage Information
   @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE),OwnershipGuard)
   @Put("/:id/updatePage")
@@ -115,6 +117,8 @@ return await this.fundraiserPageService.update(body,id)
       }
     }
 
+
+    //delete fundraiserPage Image one by one
     @Delete(":id")
     async deleteGalleryImage(@Param("id"  )filePath:string,@Req() req){
       let fundraiser= req.user;

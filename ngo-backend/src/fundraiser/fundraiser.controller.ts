@@ -63,6 +63,7 @@ export class FundraiserController {
     return this.fundraiserService.updateFundRaiserById(req,body)
   }
 
+  //get fundraiserPage By Login Fundraiser
   @Get("/fundraiser-page")
   async getAllFundraiserPages(@Req() req){
     let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
@@ -93,6 +94,8 @@ export class FundraiserController {
   //   return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
   // }
 
+
+  //create fundraiserPage from fundraiser dashboard
   @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))  
   @Post("/createPage")
@@ -118,42 +121,13 @@ export class FundraiserController {
   }
 }
 
+//get all donations with filter
 @Get("/donations")
 async findAll(@Query() query:FindDonationsDto,@Req() req){
   return await this.fundraiserService.findMany(query,req)
 }
 
-// @Get("/donations/download")
-// async downloadExcel(@Req() req,@Res() res){
-//   try {
-//     // let donations = await this.donationRepository.find({where:{fundraiser:{fundraiser_id:req.user.id}}})
-//     let donations = await this.donationRepository.find();
-//     let workbook = new exceljs.Workbook();
-
-//     const sheet = workbook.addWorksheet("donations")
-//     sheet.columns = [
-//       { header: "Donation Id", key: "donation_id_frontend" },
-//       { header: "Donation Date", key: "created_at" } ,
-//       { header: "Donation Amount", key: "amount" },
-//     ]
-
-//    await donations.map((value,idx)=>{
-//       sheet.addRow({
-//         donation_id_frontend:value.donation_id_frontend,
-//         created_at:value.created_at,
-//         amount:value.amount,
-//       });
-//     });
-    
-//     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheet.sheet"); 
-//     res.setHeader("Content-Disposition", "attachment; filename=donations.xlsx");
-
-//     workbook.xlsx.write(res)
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
-
+//download and save to local excel for donations data
 @Get('/donations/download')
 async downloadExcel(@Req() req, @Res() res) {
   try {
@@ -207,6 +181,7 @@ async downloadExcel(@Req() req, @Res() res) {
     console.error('Error creating Excel file:', error);
   }
 }
+
 
 @Get("/fundraiser-page/:filename")  
 downloadReport(@Param("filename") filename,@Res() res){

@@ -101,6 +101,7 @@ else{
 }
   }
 
+  //adding Offline donation entry
     @Post("/addOfflineDonation")
     async addOfflineDonation(@Req() req, @Body() body:AddOfflineDonationDto){
       if(await this.fundraiserRepository.findOne({where:{email:body.email}})){
@@ -113,6 +114,8 @@ else{
       
     }
 
+
+    //create fundraiser Page from admin side
     @ApiSecurity("JWT-auth")
     @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))  
     @Post("/createPage")
@@ -145,11 +148,15 @@ else{
       return await this.donationRepository.find({relations:["fundraiser"]})
     }
 
+
+
+    //get all fundraiserPages
     @Get("/fundraiserPages")
     async getAllFundraiserPages(){
       return await this.fundraiserPageRepository.find()
     }
 
+    //update fundraiserPage from admin side
     @ApiSecurity("JWT-auth")
     @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
     @Put("fundraiserPage/:id/updatePage")

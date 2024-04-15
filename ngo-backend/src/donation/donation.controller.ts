@@ -10,6 +10,7 @@ export class DonationController {
   constructor(private readonly donationService: DonationService
     ) {}
 
+    //donate without fundraiser-page
     @Post("/donate")
     @Public()
     async donate(@Body(ValidationPipe)body:DonateDto){
@@ -17,6 +18,8 @@ export class DonationController {
     }
   
 
+
+  //donate with reference from fundraiser-page
   @Post("/fundraiser-page/:id/donate")
   @Public()
   async donateToFundRaiser(@Body(ValidationPipe)body:DonateDto,@Param("id",ParseUUIDPipe) id:string){
