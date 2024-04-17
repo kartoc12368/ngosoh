@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Donation } from "../../donation/entities/donation.entity";
 import { IsNumber } from "class-validator";
 import { FundraiserPage } from "src/fundraiser-page/entities/fundraiser-page.entity";
@@ -8,6 +8,10 @@ export class Fundraiser {
 
     @PrimaryGeneratedColumn("uuid")
     fundraiser_id: string;
+
+    @Generated()
+    @Column()
+    f_id:number;
 
     @Column()
     firstName: string;

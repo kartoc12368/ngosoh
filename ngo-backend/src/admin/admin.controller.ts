@@ -20,6 +20,8 @@ import * as path from 'path';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UpdateFundraiserPageDto } from 'src/fundraiser-page/dto/update-fundraiser-page.dto';
 import { FundraiserPageService } from 'src/fundraiser-page/fundraiser-page.service';
+import { DataSource } from 'typeorm';
+import { Donation } from 'src/donation/entities/donation.entity';
 
 
 export const storage =   {  storage:diskStorage({
@@ -31,7 +33,7 @@ export const storage =   {  storage:diskStorage({
     cb(null, `${filename}${extension}`)
   } 
 })
-}
+} 
 
 @UseGuards(new RoleGuard(Constants.ROLES.ADMIN_ROLE))
 @ApiTags("Admin")
@@ -44,15 +46,66 @@ export class AdminController {
     private fundraiserService:FundraiserService,
     private fundraiserPageRepository:FundraiserPageRepository,
     private donationRepository:DonationRepository,
-    private fundraiserPageService:FundraiserPageService
+    private fundraiserPageService:FundraiserPageService,
+    private dataSource: DataSource
     ) {}
 
+  @Get("/totaldonations")
+  async getTotalDonations(){
+    return await this.adminService.getTotalDonationsService();
+  }  
+
+  @Get("/totalfundraiser")
+  async getTotalFundraisers(){
+    return await this.fundraiserRepository.count();
+  }
+
+  @Get("/activefundraisers")
+  async getActiveFundraisers(){
+    return await this.fundraiserRepository.count({where:{status: "active"}});
+  }
+
+  @Get("/todayDonations")
+  async getTodayDonations(){
+    let todayDonations = 0;
+const donations = await this.dataSource.getRepository(Donation)
+    .createQueryBuilder("donation")
+    .where("DATE(donation.created_at)=:date", {date: new Date()})
+    .getMany()
+    for (let index = 0; index < donations.length; index++) {
+      const element = donations[index].amount;
+      todayDonations = todayDonations + element;
+      
+    }
+    return todayDonations;
+    
+  }
+
+  @Get("/monthlyDonations")
+  async getThisMonthDonations(){
+    let thisMonthDonations = 0;
+const usersBornToday = await this.dataSource.getRepository(Donation)
+    .createQueryBuilder("donation")
+    .where("date_part('month',donation.created_at)=:date", {date: new Date().getMonth()+1})
+    .getMany()
+    for (let index = 0; index < usersBornToday.length; index++) {
+      const element = usersBornToday[index].amount;
+      thisMonthDonations = thisMonthDonations + element;
+      
+    }
+    return thisMonthDonations;
+    
+  }
+
+
+
   //change fundraiser status
-  @Post("/fundraiser/status/:id")
+  @Put("/fundraiser/status/:id")
   changeFundraiserStatus(@Param('id',ParseUUIDPipe) id: string) {
     return this.adminService.changeFundraiserStatus(id);
   }
   
+
  //delete fundraiser
   @Delete("/fundraiser/delete/:id")
   async deleteFundraiser(@Param('id',ParseUUIDPipe) id: string) {

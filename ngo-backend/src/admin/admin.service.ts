@@ -24,7 +24,13 @@ export class AdminService {
         fundraiser.password = hashedPassword;
         fundraiser.role = Constants.ROLES.FUNDRAISER_ROLE;
         fundraiser.status = "active";
-        return await this.fundraiserRepository.save(fundraiser)
+        try {
+          return await this.fundraiserRepository.save(fundraiser)
+
+        } catch (error) {
+          console.log(error);
+          return "Please contact saveRepository";
+        }
 
         // user.user = user1; 
         // console.log(user1)
@@ -35,23 +41,40 @@ export class AdminService {
 
     async changeFundraiserStatus(id:string){
         // return await this.fundraiserRepository.update(id,{status:"inactive"});
-        const fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}});
+        try {
+          const fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}});
 
-        if (!fundraiser) {
-          throw new NotFoundException('Fundraiser not found');
+          if (!fundraiser) {
+            throw new NotFoundException('Fundraiser not found');
+          }
+          console.log(fundraiser.status)
+          // Toggle the status based on its current value
+          fundraiser.status = fundraiser.status === 'active' ? 'inactive' : 'active';
+
+        
+          // Save the updated fundraiser
+          await this.fundraiserRepository.update(id,{status:fundraiser.status});
+          if(fundraiser.status === 'active'){
+            return {
+              "status":1
+            };
+          }
+          else{
+            return {
+              "status":0
+            };
+          }
+  
+  
+        } catch (error) {
+          console.log(error);
+          return "Please contact statusmanager";
         }
-      
-        // Toggle the status based on its current value
-        fundraiser.status = fundraiser.status === 'active' ? 'inactive' : 'active';
-      
-        // Save the updated fundraiser
-        await this.fundraiserRepository.update(id,{status:fundraiser.status});
-
-        return `Status changed to ${fundraiser.status}`;
       
     }  
     
     async deleteFundraiser(id:string){
+      try {
         const fundraiser = await this.fundraiserRepository.findOne({where:{fundraiser_id:id}});
 
         if (!fundraiser) {
@@ -59,19 +82,32 @@ export class AdminService {
         }
 
         return await this.fundraiserRepository.delete(id);
+
+      } catch (error) {
+        console.log(error);
+        return "Please contact deleteFundraiser";
+        
+      }
     }
 
     async getAllFundraiser(){
 
+      try {
         const fundraisers = await this.fundraiserRepository.find();
         const filteredUsers = fundraisers.filter((fundraiser) => fundraiser.role !== 'ADMIN');
         return filteredUsers;
 
+      } catch (error) {
+          console.log(error);
+          return "Please contact getAllFundraiser";
+      }
+
+
     }
 
     async addOfflineDonation(body){
-
-      //same code from donate service here admin passes data in body
+      try {
+              //same code from donate service here admin passes data in body
       let donation:Donation = new Donation();
       let fundraiser:Fundraiser = await this.fundraiserRepository.findOne({where:{email:body.email},relations:["fundraiser_page"]})
       console.log(fundraiser)
@@ -109,8 +145,10 @@ export class AdminService {
         return "Fundraiser not active";
       }
 
-
-
+      } catch (error) {
+        console.log(error);
+        return "Please contact addOfflineDonation";
+      }
     }
 
     async update(body,files,PageId){
@@ -137,6 +175,21 @@ export class AdminService {
       throw new NotFoundException("Not Found")
   }
 
+  }
+
+  async getTotalDonationsService(){
+    try {
+      const Donations = await this.donationRepository.find();
+      let totalDonations = 0;
+      for(let i = 0; i < Donations.length; i++){
+        totalDonations = totalDonations + Donations[i].amount;
+      }
+
+      return totalDonations;
+    } catch (error) {
+      console.log(error);
+      return "Please contact getTotalDonationsService";
+    }
   }
 
 }
