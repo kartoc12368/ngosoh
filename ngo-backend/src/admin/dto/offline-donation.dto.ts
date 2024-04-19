@@ -78,5 +78,10 @@ export class AddOfflineDonationDto{
     @IsNumber()
     donor_pincode: number;
 
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    reference_payment: string;
+
 
 }

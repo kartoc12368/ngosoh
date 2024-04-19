@@ -73,7 +73,10 @@ export class Donation {
 
     @Column({nullable: true})
     certificate:string;
-    
+
+    @Column({nullable: true})
+    reference_payment: string;
+
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
     public created_at: Date;
 
