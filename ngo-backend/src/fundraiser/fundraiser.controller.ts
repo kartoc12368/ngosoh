@@ -28,7 +28,6 @@ export const storage =   {  storage:diskStorage({
     
 @ApiTags("FundRaiser")
 @ApiSecurity("JWT-auth")
-@UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
 @Controller('fundRaiser')
 export class FundraiserController {
   constructor(private readonly fundraiserService: FundraiserService,
@@ -39,6 +38,7 @@ export class FundraiserController {
 
   //change Password Fundraiser
   @Post("/changePassword")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   async changePassword(@Req() req,@Body() changePasswordDto:ChangePasswordDto){
     await this.fundraiserService.changePassword(req,changePasswordDto)
     return "Password Changed Successfully";
@@ -46,6 +46,7 @@ export class FundraiserController {
 
   //get fundraiser details
   @Get()
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   async getFundraiser(@Req() req){
     const id = req.user;
     try {
@@ -59,12 +60,14 @@ export class FundraiserController {
 
   //update fundraiser details
   @Put("/update")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   async updateFundraiser(@Req() req,@Body(ValidationPipe)body:UpdateFundraiserDto){
     return this.fundraiserService.updateFundRaiserById(req,body)
   }
 
   //get fundraiserPage By Login Fundraiser
   @Get("/fundraiser-page")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   async getAllFundraiserPages(@Req() req){
     let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
     return this.fundraiserService.getFundraiserPage(fundRaiser);
@@ -72,6 +75,7 @@ export class FundraiserController {
   
   //upload fundraiser profileImage
   @Post("upload")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   @UseInterceptors(FileInterceptor("file",storage))
   async uploadFile(@UploadedFile() file,@Req() req){
     let fundraiser:Fundraiser = req.user;
@@ -82,6 +86,7 @@ export class FundraiserController {
 
   //get fundraiser ProfileImage
   @Get("profile-image/:imagename")
+  @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
   findProfileImage(@Param("imagename") imagename,@Res() res){
     return of(res.sendFile(path.join(process.cwd(), "uploads/profileImages/"+ imagename)));
   }
@@ -123,12 +128,14 @@ export class FundraiserController {
 
 //get all donations with filter
 @Get("/donations")
+@UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
 async findAll(@Query() query:FindDonationsDto,@Req() req){
   return await this.fundraiserService.findMany(query,req)
 }
 
 //download and save to local excel for donations data
 @Get('/donations/download')
+@UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
 async downloadExcel(@Req() req, @Res() res) {
   try {
     const donations = await this.donationRepository.find({
@@ -184,6 +191,7 @@ async downloadExcel(@Req() req, @Res() res) {
 
 
 @Get("/fundraiser-page/:filename")  
+@Public()
 downloadReport(@Param("filename") filename,@Res() res){
   return of(res.sendFile(path.join(process.cwd(), "uploads/fundraiserPageImages/"+ filename)));
 }

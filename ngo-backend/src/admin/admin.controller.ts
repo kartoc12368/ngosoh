@@ -9,7 +9,6 @@ import { GeneratePasswordDto } from './dto/generate-password.dto';
 import { FundraiserService } from 'src/fundraiser/fundraiser.service';
 import { AddOfflineDonationDto } from './dto/offline-donation.dto';
 import { FundRaiserRepository } from 'src/fundraiser/repo/fundraiser.repository';
-import { Fundraiser } from 'src/fundraiser/entities/fundraiser.entity';
 import { FundraiserPageRepository } from 'src/fundraiser-page/repo/fundraiser-page.repository';
 import { FundraiserPage } from 'src/fundraiser-page/entities/fundraiser-page.entity';
 import { CreateFundraiserPageAdminDto } from './dto/create-fundraiserpage-admin.dto';
@@ -23,7 +22,7 @@ import { FundraiserPageService } from 'src/fundraiser-page/fundraiser-page.servi
 import { DataSource } from 'typeorm';
 import { Donation } from 'src/donation/entities/donation.entity';
 
-
+//storage path for fundraiserPage Images
 export const storage =   {  storage:diskStorage({
   destination:"./uploads/fundraiserPageImages",
   filename:(req,file,cb)=>{
@@ -50,21 +49,25 @@ export class AdminController {
     private dataSource: DataSource
     ) {}
 
+  //get totaldonations amount  
   @Get("/totaldonations")
   async getTotalDonations(){
     return await this.adminService.getTotalDonationsService();
   }  
 
+  //get total fundraiser count
   @Get("/totalfundraiser")
   async getTotalFundraisers(){
     return await this.fundraiserRepository.count();
   }
 
+  //get total fundraiser count who is active
   @Get("/activefundraisers")
   async getActiveFundraisers(){
     return await this.fundraiserRepository.count({where:{status: "active"}});
   }
 
+  //get donations total of that day
   @Get("/todayDonations")
   async getTodayDonations(){
     let todayDonations = 0;
@@ -81,6 +84,7 @@ const donations = await this.dataSource.getRepository(Donation)
     
   }
 
+  //get total donation amount of that month
   @Get("/monthlyDonations")
   async getThisMonthDonations(){
     let thisMonthDonations = 0;
