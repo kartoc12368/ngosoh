@@ -51,6 +51,27 @@ export class Donation {
     payment_status: string;
 
     @Column({nullable: true})
+    donation_date: Date;
+
+    @Column({nullable: true})
+    donor_city: string;
+
+    @Column({nullable: true})
+    donor_state: string;
+
+    @Column({nullable: true})
+    donor_country: string;
+
+    @Column({nullable: true})
+    donor_bankName: string;
+
+    @Column({nullable: true})
+    donor_bankBranch: string;
+
+    @Column({nullable: true})
+    donor_pincode: number;
+
+    @Column({nullable: true})
     certificate:string;
     
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
