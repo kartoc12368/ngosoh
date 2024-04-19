@@ -27,7 +27,6 @@ export const storage =   {  storage:diskStorage({
     cb(null, `${filename}${extension}`) } }) }
     
 @ApiTags("FundRaiser")
-@ApiSecurity("JWT-auth")
 @Controller('fundRaiser')
 export class FundraiserController {
   constructor(private readonly fundraiserService: FundraiserService,
@@ -37,16 +36,18 @@ export class FundraiserController {
   ) {}
 
   //change Password Fundraiser
-  @Post("/changePassword")
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Post("/changePassword")
   async changePassword(@Req() req,@Body() changePasswordDto:ChangePasswordDto){
     await this.fundraiserService.changePassword(req,changePasswordDto)
     return "Password Changed Successfully";
   }
 
   //get fundraiser details
-  @Get()
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Get()
   async getFundraiser(@Req() req){
     const id = req.user;
     try {
@@ -59,23 +60,26 @@ export class FundraiserController {
 
 
   //update fundraiser details
-  @Put("/update")
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Put("/update")
   async updateFundraiser(@Req() req,@Body(ValidationPipe)body:UpdateFundraiserDto){
     return this.fundraiserService.updateFundRaiserById(req,body)
   }
 
   //get fundraiserPage By Login Fundraiser
-  @Get("/fundraiser-page")
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Get("/fundraiser-page")
   async getAllFundraiserPages(@Req() req){
     let fundRaiser:Fundraiser = await this.fundRaiserRepository.findOne({where:{fundraiser_id:req.user.id}})
     return this.fundraiserService.getFundraiserPage(fundRaiser);
   }
   
   //upload fundraiser profileImage
-  @Post("upload")
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Post("upload")
   @UseInterceptors(FileInterceptor("file",storage))
   async uploadFile(@UploadedFile() file,@Req() req){
     let fundraiser:Fundraiser = req.user;
@@ -85,20 +89,12 @@ export class FundraiserController {
   }
 
   //get fundraiser ProfileImage
-  @Get("profile-image/:imagename")
+  @ApiSecurity("JWT-auth")
   @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+  @Get("profile-image/:imagename")
   findProfileImage(@Param("imagename") imagename,@Res() res){
     return of(res.sendFile(path.join(process.cwd(), "uploads/profileImages/"+ imagename)));
   }
-
-
-
-  // @Get("/donations")
-  // async getDonationsById(@Req() req){
-  //   let fundraiser:Fundraiser=req.user
-  //   return await this.fundraiserService.getDonationByIdFundraiser(fundraiser)
-  // }
-
 
   //create fundraiserPage from fundraiser dashboard
   @ApiSecurity("JWT-auth")
@@ -127,15 +123,17 @@ export class FundraiserController {
 }
 
 //get all donations with filter
-@Get("/donations")
+@ApiSecurity("JWT-auth")
 @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+@Get("/donations")
 async findAll(@Query() query:FindDonationsDto,@Req() req){
   return await this.fundraiserService.findMany(query,req)
 }
 
 //download and save to local excel for donations data
-@Get('/donations/download')
+@ApiSecurity("JWT-auth")
 @UseGuards(new RoleGuard(Constants.ROLES.FUNDRAISER_ROLE))
+@Get('/donations/download')
 async downloadExcel(@Req() req, @Res() res) {
   try {
     const donations = await this.donationRepository.find({
@@ -180,10 +178,9 @@ async downloadExcel(@Req() req, @Res() res) {
     const filePath = path.join(downloadsFolder, filename);
 
     await workbook.xlsx.writeFile(filePath);
+    return of(res.sendFile(path.join(process.cwd(), "downloads/"+ filename)));
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheet.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-    res.end();
+
   } catch (error) {
     console.error('Error creating Excel file:', error);
   }
